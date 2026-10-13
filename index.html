@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#171735">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="님 게임">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+<meta name="description" content="무더기와 난이도를 직접 설정해 컴퓨터와 대결하는 님 게임">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<title>님 게임</title>
+<style>
+:root{color-scheme:dark;--bg:#101026;--panel:#1d1d3b;--panel2:#292747;--purple:#a18aff;--text:#f6f4ff;--muted:#bcb8d8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;min-height:100dvh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);background:radial-gradient(circle at top,#30205a,var(--bg) 48%);color:var(--text);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif}
+main{width:min(100% - 26px,560px);margin:auto;padding:22px 0 38px}
+header,.headrow,.pile-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+header{margin-bottom:18px}.logo{font-size:21px;font-weight:900;display:flex;align-items:center;gap:9px;letter-spacing:.5px}.logo span{background:#6546ca;padding:9px;border-radius:13px}
+.card{background:var(--panel);border:1px solid #ffffff12;border-radius:18px;padding:16px;margin-top:13px}
+.hero{padding:23px;border-radius:24px;background:linear-gradient(140deg,#6546ca,#32216c);box-shadow:0 12px 30px #0002}
+.eyebrow{font-size:11px;letter-spacing:2px;color:#ded5ff;font-weight:800}h1{font-size:29px;margin:8px 0}h2{font-size:18px;margin:0 0 13px}p{line-height:1.6}.hero p{margin-bottom:0;color:#e5deff}.muted,small{color:var(--muted)}
+label{display:block;font-size:14px;font-weight:650;margin-bottom:7px}
+input,select{font:inherit;color:white;background:#111129;border:1px solid #49436d;border-radius:11px;padding:12px;width:100%;min-width:0}
+input:focus,select:focus,button:focus-visible{outline:2px solid #c3b5ff;outline-offset:2px}
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pile-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pile-field{background:var(--panel2);padding:10px;border-radius:12px}.pile-field label{font-size:12px}
+button{font:inherit;font-weight:750;cursor:pointer;touch-action:manipulation;border:0;border-radius:12px;padding:13px}
+.primary{background:var(--purple);color:#17112f;width:100%}.secondary{background:#39305d;color:white;border:1px solid #ffffff18}.smallbtn{padding:9px 12px;font-size:13px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}.stat{background:var(--panel);border:1px solid #ffffff10;border-radius:15px;padding:14px}.stat small{display:block}.stat strong{font-size:25px;display:block;margin-top:3px}
+.piles{display:grid;gap:11px}.pile{background:var(--panel);border:1px solid #ffffff12;border-radius:17px;padding:14px}.count{color:#c1b1ff}
+.stones{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0;min-height:23px;align-items:center}.stone{width:21px;height:21px;flex:0 0 21px;border-radius:50%;background:linear-gradient(145deg,#d7c9ff,#8164f0);box-shadow:inset -3px -3px 5px #49329a55}
+.pile:nth-child(3n+2) .stone{background:linear-gradient(145deg,#a6d9ff,#4b8eea)}.pile:nth-child(3n) .stone{background:linear-gradient(145deg,#ffe3a2,#f2a93b)}
+.actions{display:flex;flex-wrap:wrap;gap:7px}.take{flex:1;min-width:85px;padding:10px 7px;background:#39305d;color:white}.take:disabled{opacity:.3;cursor:default}
+.notice{background:var(--panel2);border-radius:15px;padding:15px;margin-top:13px;line-height:1.6}.notice b{display:block;margin-bottom:4px}
+.reset{width:100%;margin-top:12px;background:#eee9ff;color:#30205a}footer{text-align:center;color:#8f8ba9;font-size:12px;margin-top:24px}[hidden]{display:none!important}
+@media(max-width:360px){.pile-inputs,.settings-grid{grid-template-columns:1fr}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<main>
+<header><div class="logo"><span>🎮</span> NIM GAME</div><button id="install" class="secondary smallbtn" hidden>앱 설치</button></header>
+<section class="hero"><div class="eyebrow">CUSTOM STRATEGY GAME</div><h1>나만의 님 게임</h1><p>무더기와 돌 개수를 직접 정하고 컴퓨터의 실력에 도전하세요!</p></section>
+<section class="card">
+<h2>⚙️ 게임 설정</h2>
+<div class="settings-grid">
+<div><label for="pileCount">무더기 수 (1~10)</label><input id="pileCount" type="number" min="1" max="10" value="3" inputmode="numeric"></div>
+<div><label for="difficulty">컴퓨터 난이도</label><select id="difficulty"><option value="low">하 - 무작위</option><option value="mid">중 - 이기는 수 우선</option><option value="high" selected>상 - 최적 전략</option></select></div>
+</div>
+<div class="headrow" style="margin:20px 0 12px"><h2 style="margin:0">🪨 무더기별 돌 개수</h2><button id="updateFields" class="secondary smallbtn">개수 적용</button></div>
+<div id="pileInputs" class="pile-inputs"></div>
+<p class="muted" style="font-size:12px;margin-bottom:0">각 무더기는 0~999개로 설정할 수 있어요. 단, 전체 돌은 0개일 수 없습니다.</p>
+<button id="start" class="primary" style="margin-top:15px">설정으로 게임 시작</button>
+</section>
+<section class="stats"><div class="stat"><small>남은 돌</small><strong id="total">12</strong></div><div class="stat"><small>내 승리</small><strong id="wins">0</strong></div></section>
+<div class="headrow" style="margin:23px 2px 12px"><h2 style="margin:0">현재 게임</h2><span id="levelLabel" class="muted" style="font-size:12px">상 난이도</span></div>
+<section id="piles" class="piles"></section>
+<section class="notice" aria-live="polite"><b id="statusTitle">당신의 차례</b><div id="status" class="muted">원하는 무더기에서 돌을 가져오세요.</div></section>
+<button id="reset" class="reset">↻ 현재 설정으로 다시 시작</button>
+<footer>님 게임 · 마지막 돌을 가져가면 승리!</footer>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const MAX_PILES = 10, MAX_STONES = 999;
+let piles = [3,4,5], wins = 0, busy = false, finished = false, gameLevel = "high";
+function clampInt(value,min,max){const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,Math.floor(n))):min}
+function readPileInputs(){return [...$("pileInputs").querySelectorAll("input")].map(input=>clampInt(input.value,0,MAX_STONES))}
+function buildInputs(values){
+  const count=clampInt($("pileCount").value,1,MAX_PILES);$("pileCount").value=count;
+  const old=values||readPileInputs(),root=$("pileInputs");root.replaceChildren();
+  for(let i=0;i<count;i++){
+    const field=document.createElement("div");field.className="pile-field";
+    const label=document.createElement("label");label.htmlFor="stones-"+i;label.textContent=(i+1)+"번 무더기 돌 개수";
+    const input=document.createElement("input");input.id="stones-"+i;input.type="number";input.min="0";input.max=String(MAX_STONES);input.step="1";input.inputMode="numeric";input.value=old[i]??3;input.setAttribute("aria-label",label.textContent);
+    field.append(label,input);root.append(field);
+  }
+}
+function setStatus(title,message){$("statusTitle").textContent=title;$("status").textContent=message}
+function render(){
+  $("total").textContent=piles.reduce((a,b)=>a+b,0);$("wins").textContent=wins;
+  const root=$("piles");root.replaceChildren();
+  piles.forEach((count,i)=>{
+    const card=document.createElement("div");card.className="pile";
+    const head=document.createElement("div");head.className="pile-head";
+    const name=document.createElement("span");name.textContent=(i+1)+"번 무더기";
+    const num=document.createElement("span");num.className="count";num.textContent=count+"개";head.append(name,num);card.append(head);
+    const stones=document.createElement("div");stones.className="stones";
+    const shown=Math.min(count,36);
+    for(let j=0;j<shown;j++){const stone=document.createElement("span");stone.className="stone";stone.setAttribute("aria-hidden","true");stones.append(stone)}
+    if(count>shown){const more=document.createElement("small");more.textContent="+"+(count-shown)+"개";stones.append(more)}card.append(stones);
+    const actions=document.createElement("div");actions.className="actions";
+    const choices=[1,2,3,5,10].filter(n=>n<=count);if(count>0&&!choices.includes(count))choices.push(count);
+    choices.sort((a,b)=>a-b).forEach(n=>{const button=document.createElement("button");button.className="take";button.textContent=n+"개 가져가기";button.disabled=busy||finished;button.addEventListener("click",()=>playerMove(i,n));actions.append(button)});
+    if(count===0){const empty=document.createElement("small");empty.textContent="비어 있어요";actions.append(empty)}
+    card.append(actions);root.append(card);
+  });
+}
+function xorSum(arr){return arr.reduce((a,b)=>a^b,0)}
+function winningMove(arr){
+  const xor=xorSum(arr);if(xor===0)return null;
+  for(let i=0;i<arr.length;i++){const target=arr[i]^xor;if(target<arr[i])return {index:i,amount:arr[i]-target}}
+  return null;
+}
+function randomMove(arr){
+  const nonempty=arr.map((v,i)=>({v,i})).filter(x=>x.v>0);if(!nonempty.length)return null;
+  const chosen=nonempty[Math.floor(Math.random()*nonempty.length)];
+  return {index:chosen.i,amount:1+Math.floor(Math.random()*chosen.v)};
+}
+function mediumMove(arr){return winningMove(arr)||randomMove(arr)}
+function chooseComputerMove(arr){if(gameLevel==="low")return randomMove(arr);if(gameLevel==="mid")return mediumMove(arr);return winningMove(arr)||randomMove(arr)}
+function playerMove(i,n){
+  if(busy||finished||piles[i]<n||n<1)return;piles[i]-=n;
+  if(piles.every(v=>v===0)){finished=true;wins++;setStatus("🏆 승리!","마지막 돌을 가져갔어요. 컴퓨터를 이겼습니다!");render();return}
+  busy=true;setStatus("🤖 컴퓨터 차례","컴퓨터가 수를 고르고 있어요…");render();
+  setTimeout(()=>{
+    const move=chooseComputerMove(piles);
+    if(!move){busy=false;finished=true;setStatus("게임 종료","더 이상 가져갈 돌이 없습니다.");render();return}
+    piles[move.index]-=move.amount;busy=false;
+    if(piles.every(v=>v===0)){finished=true;setStatus("컴퓨터 승리",`컴퓨터가 ${move.index+1}번 무더기에서 ${move.amount}개를 가져가 마지막 돌을 차지했어요.`)}
+    else setStatus("🎮 당신의 차례",`컴퓨터가 ${move.index+1}번 무더기에서 ${move.amount}개를 가져갔어요.`);
+    render();
+  },350);
+}
+function startGame(){
+  const values=readPileInputs();
+  if(!values.length||values.every(v=>v===0)){setStatus("설정 오류","돌을 하나 이상 넣고 게임을 시작해 주세요.");return}
+  piles=values;gameLevel=$("difficulty").value;busy=false;finished=false;
+  const names={low:"하 난이도",mid:"중 난이도",high:"상 난이도"};$("levelLabel").textContent=names[gameLevel];
+  setStatus("당신의 차례","원하는 무더기에서 돌을 가져오세요.");render();
+}
+$("updateFields").addEventListener("click",()=>buildInputs(readPileInputs()));
+$("pileCount").addEventListener("change",()=>buildInputs(readPileInputs()));
+$("start").addEventListener("click",startGame);$("reset").addEventListener("click",startGame);
+buildInputs([3,4,5]);render();
+let installPrompt=null;
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();installPrompt=event;$("install").hidden=false});
+$("install").addEventListener("click",async()=>{if(!installPrompt)return;installPrompt.prompt();await installPrompt.userChoice;installPrompt=null;$("install").hidden=true});
+if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
+</script>
+</body>
+</html>
